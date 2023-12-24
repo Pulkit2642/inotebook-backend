@@ -8,10 +8,10 @@ const { body, validationResult } = require('express-validator');
 router.get('/fetchallnotes', fetchuser, async (req, res) => {
     try {
         const notes = await Note.find({ owner: req.user });
-        res.json(notes);
+        res.json({success: true, data:notes});
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ error: err, message: "Server side error" })
+        return res.status(500).json({ error: "Server side error", details: err })
     }
 });
 
@@ -21,18 +21,18 @@ body('description', 'Description must be atleast 3 characters').isLength({ min: 
     , fetchuser, async (req, res) => {
         try {
             const errors = validationResult(req);
-            if (!errors.isEmpty) {
+            if (!errors.isEmpty()) {
                 // Check  for errors in incoming data
-                return res.status(400).json({ errors: errors.array() });
+                return res.status(400).json({ error: "Please check your input", details: errors.array() });
             } else {
                 const { title, description, tag } = req.body;
                 const newNote = new Note({ title, description, tag, owner: req.user });
                 const savedNote = await newNote.save();
-                res.json({ status: "Note Saved Successfully", note: savedNote })
+                res.json({ success: true, data: savedNote })
             }
         } catch (err) {
             console.error(err);
-            return res.status(500).json({ error: err, message: "Server side error" })
+            return res.status(500).json({ error: "Server side error", details: err })
         }
     });
 
@@ -52,12 +52,12 @@ router.put('/updatenote/:id', fetchuser, async (req, res) => {
             return res.status(401).json({ error: "Not allowed" })
         } else {
             note = await Note.findByIdAndUpdate(req.params.id, { $set: newNote, new: true });
-            return res.json({ status: "Note updated successfully", data: note });
+            return res.json({ success: true, data: note });
         }
 
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ error: err, message: "Server side error" })
+        return res.status(500).json({ error: "Server side error", details: err })
     }
 });
 
@@ -75,7 +75,7 @@ router.delete('/deletenote/:id', fetchuser, async (req, res) => {
         }
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ error: err, message: "Server side error" })
+        return res.status(500).json({ error: "Server side error", details: err })
     }
 });
 

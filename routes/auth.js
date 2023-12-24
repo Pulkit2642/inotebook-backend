@@ -17,14 +17,14 @@ router.post('/createUser', [
 ], async (req, res) => {
     try {
         const errors = validationResult(req);
-        if (!errors.isEmpty) {
+        if (!errors.isEmpty()) {
             // Check  for errors in incoming data
-            return res.status(400).json({ errors: errors.array() });
+            return res.status(400).json({ error: "Please check your input", details: errors.array() });
         } else {
             // Check weither a User with this email already  exists
             let oldUser = await User.findOne({ email: req.body.email });
             if (oldUser) {
-                return res.status(400).json({ errors: "Sorry a user with this e-mail already exists." });
+                return res.status(400).json({ error: "Sorry a user with this e-mail already exists." });
             } else {
                 // Incoming data verification complete. Creating user....
                 const salt = await bcrypt.genSalt(10);
@@ -40,13 +40,13 @@ router.post('/createUser', [
                 }
                 console.log(data);
                 const token = jwt.sign(data, JWT_SECRET);
-                return res.json({ status: "Successfully added user", token: token })
+                return res.json({ success: true, token: token })
             }
         }
     } catch (err) {
         //  For other errors
         console.error(err);
-        return res.status(500).json({ error: err, message: "Server side error" })
+        return res.status(500).json({ error: "Server side error", details:err })
     }
 });
 
@@ -57,10 +57,10 @@ router.post('/loginUser', [
     body('password', 'Password cannot be blank').exists()
 ], async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty) {
+    if (!errors.isEmpty()) {
         // Check  for errors in incoming data
         // NOTE: Use 'return' keyword when sending data back to user.
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ error: "Please check your input", details: errors.array() });
     } else {
         try {
             const { email, password } = req.body;
@@ -77,13 +77,13 @@ router.post('/loginUser', [
                     }
                     console.log(data);
                     const token = jwt.sign(data, JWT_SECRET);
-                    return res.json({ status: "Successfully authenticated user", token: token })
+                    return res.json({ success: true, token: token })
                 }
             }
         } catch (err) {
             //  For other errors
             console.error(err);
-            return res.status(500).json({ error: err, message: "Server side error" })
+            return res.status(500).json({ error: "Server side error",  details: err })
         }
     }
 });
@@ -92,10 +92,10 @@ router.post('/loginUser', [
 router.get('/getUser', fetchuser, async (req, res) => {
     try{
         const user = await User.findById(req.user).select('-password');
-        res.json(user);
+        res.json({success: true, data: user});
     } catch {
         console.error(err);
-        return res.status(500).json({ error: err, message: "Server side error" })
+        return res.status(500).json({ error: "Server side error",  details:err })
     }
 });
 

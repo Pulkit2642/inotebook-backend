@@ -5,7 +5,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fetchuser = require('../middleware/fetchUser');
 
-const JWT_SECRET = "Up78@2051verysecret";
+if (process.env.NODE_ENV !== "production") {
+    require("dotenv").config();
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const router = express.Router();
 
